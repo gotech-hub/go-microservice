@@ -27,7 +27,7 @@ Run check unit tests is recommended to be run in a containerized environment.
 
 ## 👥 Authors
 
-- **Mai Công Trình** – [nguyenvana@example.com](mailto:nguyenvana@example.com) – [github.com/nguyenvana](https://github.com/nguyenvana)
-- **Lương Công Văn** – [tranthib@example.com](mailto:tranthib@example.com) – [github.com/tranthib](https://github.com/tranthib)
-- **Bùi Quốc Đạt** – [levanc@example.com](mailto:levanc@example.com) – [github.com/levanc](https://github.com/levanc)
-- **Nguyễn Tiến Dũng** – [levanc@example.com](mailto:levanc@example.com) – [github.com/levanc](https://github.com/levanc)
+- **Mai Công Trình** – [trinhbentre2013@gmail.com](mailto:trinhbentre2013@gmail.com) 
+- **Lương Công Văn** – [@gmail.com](mailto:@gmail.com)
+- **Bùi Quốc Đạt** – [datbq.work@gmail.com](mailto:datbq.work@gmail.com) 
+- **Nguyễn Tiến Dũng** – [ntdung.it.2912@gmail.com](mailto:ntdung.it.2912@gmail.com) 

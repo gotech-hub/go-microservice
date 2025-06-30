@@ -16,11 +16,11 @@ import (
 // UserServiceHandler implements pb.UserServiceServer
 type UserServiceHandler struct {
 	pb.UnimplementedUserServiceServer
-	userService *services.UserService
+	userService services.UserService
 }
 
 // NewUserServiceHandler creates a new UserServiceHandler
-func NewUserServiceHandler(userService *services.UserService) *UserServiceHandler {
+func NewUserServiceHandler(userService services.UserService) *UserServiceHandler {
 	return &UserServiceHandler{
 		userService: userService,
 	}
