@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "go-source/api/grpc/proto/gen/user";
+
+import "google/protobuf/timestamp.proto";
+
+// UserService định nghĩa các API cho quản lý user
+service UserService {
+  // Tạo user mới
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  
+  // Lấy thông tin user theo ID
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  
+  // Cập nhật thông tin user
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  
+  // Xóa user
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+  
+  // Lấy danh sách users với pagination
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  
+  // Health check
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+// User model
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string phone = 4;
+  UserStatus status = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+// User status enum
+enum UserStatus {
+  USER_STATUS_UNSPECIFIED = 0;
+  USER_STATUS_ACTIVE = 1;
+  USER_STATUS_INACTIVE = 2;
+  USER_STATUS_SUSPENDED = 3;
+}
+
+// CreateUserRequest
+message CreateUserRequest {
+  string name = 1;
+  string email = 2;
+  string phone = 3;
+}
+
+// CreateUserResponse
+message CreateUserResponse {
+  User user = 1;
+  string message = 2;
+}
+
+// GetUserRequest
+message GetUserRequest {
+  string id = 1;
+}
+
+// GetUserResponse
+message GetUserResponse {
+  User user = 1;
+}
+
+// UpdateUserRequest
+message UpdateUserRequest {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string phone = 4;
+  UserStatus status = 5;
+}
+
+// UpdateUserResponse
+message UpdateUserResponse {
+  User user = 1;
+  string message = 2;
+}
+
+// DeleteUserRequest
+message DeleteUserRequest {
+  string id = 1;
+}
+
+// DeleteUserResponse
+message DeleteUserResponse {
+  string message = 1;
+}
+
+// ListUsersRequest
+message ListUsersRequest {
+  int32 page = 1;
+  int32 limit = 2;
+  string search = 3;
+  UserStatus status = 4;
+}
+
+// ListUsersResponse
+message ListUsersResponse {
+  repeated User users = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+// HealthCheckRequest
+message HealthCheckRequest {}
+
+// HealthCheckResponse
+message HealthCheckResponse {
+  string status = 1;
+  string message = 2;
+  google.protobuf.Timestamp timestamp = 3;
+} 

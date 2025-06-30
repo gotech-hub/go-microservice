@@ -72,7 +72,7 @@ func NewClient(baseURL string, timeout time.Duration, maxRetry int, waitTime tim
 	}
 
 	// get key encrypt from env
-	keyEncrypt := os.Getenv(utils.VGREncryptKey)
+	keyEncrypt := os.Getenv(utils.EncryptKey)
 
 	client := resty.New()
 	client.SetBaseURL(baseURL)

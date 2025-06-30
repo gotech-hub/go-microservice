@@ -23,6 +23,21 @@ vendor: ## Get vendor
 tidy: ## Clean up go.mod and go.sum
 	go mod tidy
 
+proto-gen: ## Generate protobuf code
+	@if ! command -v protoc &> /dev/null; then \
+		echo "protoc is not installed. Please install protobuf compiler first."; \
+		exit 1; \
+	fi
+	@if ! command -v protoc-gen-go &> /dev/null; then \
+		echo "protoc-gen-go is not installed. Run 'go install google.golang.org/protobuf/cmd/protoc-gen-go@latest'"; \
+		exit 1; \
+	fi
+	@if ! command -v protoc-gen-go-grpc &> /dev/null; then \
+		echo "protoc-gen-go-grpc is not installed. Run 'go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest'"; \
+		exit 1; \
+	fi
+	./script/generate_proto.sh
+
 unit-test: ## Run unit tests
 	go test ./... -cover -short
 
@@ -48,6 +63,8 @@ docker-run: ## Run Docker container
 install-deps: ## Install required dependencies
 	go get -u github.com/swaggo/swag/cmd/swag
 	go get -u github.com/securego/gosec/v2/cmd/gosec@latest
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 mock-gen: ## Generate mocks
 	mockgen -source=repositories/entity/repository.go \

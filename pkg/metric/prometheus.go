@@ -2,6 +2,7 @@ package metric
 
 import (
 	logger "go-source/pkg/log"
+
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	meter "go.opentelemetry.io/otel/metric"
@@ -9,7 +10,7 @@ import (
 )
 
 var (
-	meterGlobal = otel.Meter("VGR-instrumentation")
+	meterGlobal = otel.Meter("instrumentation")
 )
 
 func init() {
@@ -29,7 +30,7 @@ func init() {
 		)),
 	)
 
-	meterGlobal = meterProvider.Meter("VGR-instrumentation")
+	meterGlobal = meterProvider.Meter("instrumentation")
 	otel.SetMeterProvider(meterProvider)
 }
 

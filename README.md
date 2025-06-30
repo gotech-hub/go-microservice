@@ -23,3 +23,11 @@ Run check unit tests is recommended to be run in a containerized environment.
 ```bash
 ./coverage.sh
 ```
+
+
+## 👥 Authors
+
+- **Mai Công Trình** – [nguyenvana@example.com](mailto:nguyenvana@example.com) – [github.com/nguyenvana](https://github.com/nguyenvana)
+- **Lương Công Văn** – [tranthib@example.com](mailto:tranthib@example.com) – [github.com/tranthib](https://github.com/tranthib)
+- **Bùi Quốc Đạt** – [levanc@example.com](mailto:levanc@example.com) – [github.com/levanc](https://github.com/levanc)
+- **Nguyễn Tiến Dũng** – [levanc@example.com](mailto:levanc@example.com) – [github.com/levanc](https://github.com/levanc)

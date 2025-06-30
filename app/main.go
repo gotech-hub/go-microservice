@@ -9,6 +9,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"go-source/api/grpc"
 	"go-source/api/http"
 	"go-source/bootstrap"
 	"go-source/config"
@@ -53,7 +54,19 @@ func main() {
 
 	// Start HTTP server with configured handlers
 	srv := http.NewHttpServe(handlers)
-	srv.Start(e)
+	go func() {
+		srv.Start(e)
+	}()
+
+	// Start gRPC server
+	grpcServer := grpc.NewServer(9090, &services.UserService)
+	go func() {
+		if err := grpcServer.Start(); err != nil {
+			log.Fatal().Msgf("gRPC server failed: %v", err)
+		}
+	}()
+
+	log.Info().Msg("Both HTTP and gRPC servers started successfully")
 
 	// Wait for termination signal for graceful shutdown
 	<-ctx.Done()
@@ -62,6 +75,11 @@ func main() {
 	// Allow 15 seconds for active connections to close
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer shutdownCancel()
+
+	// Stop gRPC server
+	grpcServer.Stop()
+
+	// Stop HTTP server
 	if err := e.Shutdown(shutdownCtx); err != nil {
 		log.Fatal().Msgf("Force shutdown services")
 	}

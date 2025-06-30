@@ -39,7 +39,7 @@ const (
 )
 
 const (
-	VGREncryptKey = "VGR_ENCRYPT_KEY"
+	EncryptKey = "ENCRYPT_KEY"
 )
 
 const (

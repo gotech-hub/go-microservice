@@ -3,16 +3,23 @@ package utils
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/tidwall/gjson"
-	"golang.org/x/text/unicode/norm"
 	"reflect"
 	"regexp"
 	"sort"
 	"strings"
 	"unicode"
 
+	"github.com/tidwall/gjson"
+	"golang.org/x/text/unicode/norm"
+
 	"github.com/segmentio/ksuid"
+)
+
+// Common errors
+var (
+	ErrNotFound = errors.New("not found")
 )
 
 type TraceInfo struct {
@@ -215,4 +222,9 @@ func RemoveDiacritics(input string) string {
 
 	// Convert the rune slice back to a string.
 	return string(result)
+}
+
+// GenerateID generates a unique ID using KSUID
+func GenerateID() string {
+	return ksuid.New().String()
 }

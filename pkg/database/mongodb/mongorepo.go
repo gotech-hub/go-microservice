@@ -39,7 +39,7 @@ type Repository[T ModelInterface] struct {
 func NewRepository[T ModelInterface](dbStorage *DatabaseStorage, opts ...*options.CollectionOptions) *Repository[T] {
 	log := logger.GetLogger()
 
-	keyEncrypt := os.Getenv(utils.VGREncryptKey)
+	keyEncrypt := os.Getenv(utils.EncryptKey)
 
 	var t T
 	fieldsNameEnc := readTagEncrypt(t)
