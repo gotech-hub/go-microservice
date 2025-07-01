@@ -10,6 +10,7 @@ import (
 type SystemConfig struct {
 	Env            string `env:"ENV,required,notEmpty"`
 	HttpPort       uint64 `env:"HTTP_PORT,required,notEmpty"`
+	WSPort         uint64 `env:"WS_PORT"`
 	ServiceName    string `env:"SERVICE_NAME,required,notEmpty"`
 	ServiceVersion string `env:"SERVICE_VERSION,required,notEmpty"`
 

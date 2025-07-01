@@ -11,6 +11,7 @@ import (
 
 	"go-source/api/grpc"
 	"go-source/api/http"
+	"go-source/api/ws"
 	"go-source/bootstrap"
 	"go-source/config"
 	"go-source/pkg/constant"
@@ -19,17 +20,17 @@ import (
 )
 
 func main() {
+	// Initialize logging system with service name
+	logger.InitLog("go-source")
+	log := logger.GetLogger()
+	log.Info().Msgf("Start %s services", constant.ServiceName)
+
 	// Load application configuration from environment variables
 	config, err := config.LoadConfig()
 	if err != nil {
 		logger.GetLogger().Fatal().Msgf("Failed to load configuration: %v", err)
 		return
 	}
-
-	// Initialize logging system with service name
-	logger.InitLog(config.ServiceName)
-	log := logger.GetLogger()
-	log.Info().Msgf("Start %s services", constant.ServiceName)
 
 	// Set health check status to true for service discovery
 	http.SetHealthCheck(true)
@@ -58,6 +59,12 @@ func main() {
 		srv.Start(e)
 	}()
 
+	// Start WebSocket server
+	wsServer := ws.NewWSServer(handlers)
+	go func() {
+		wsServer.Start(e)
+	}()
+
 	// Start gRPC server
 	grpcServer := grpc.NewServer(9090, &services.UserService)
 	go func() {
@@ -66,11 +73,12 @@ func main() {
 		}
 	}()
 
-	log.Info().Msg("Both HTTP and gRPC servers started successfully")
+	log.Info().Msg("HTTP, WebSocket, and gRPC servers started successfully")
 
 	// Wait for termination signal for graceful shutdown
 	<-ctx.Done()
 	http.SetHealthCheck(false)
+	ws.SetWSHealthCheck(false)
 
 	// Allow 15 seconds for active connections to close
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -78,6 +86,11 @@ func main() {
 
 	// Stop gRPC server
 	grpcServer.Stop()
+
+	// Stop WebSocket server
+	if err := wsServer.Stop(shutdownCtx); err != nil {
+		log.Error().Msgf("WebSocket server shutdown error: %v", err)
+	}
 
 	// Stop HTTP server
 	if err := e.Shutdown(shutdownCtx); err != nil {
