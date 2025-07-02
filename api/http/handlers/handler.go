@@ -1,7 +1,11 @@
 package handlers
 
 import (
-	"github.com/labstack/echo"
+	"go-source/api/http/models"
+	"go-source/pkg/resp"
+	"net/http"
+
+	"github.com/labstack/echo/v4"
 )
 
 type Handler struct {
@@ -25,20 +29,15 @@ func NewHandler() (handler *Handler) {
 // @Failure 400 {object} resp.Resp
 // @Failure 404 {object} resp.Resp
 // @Router /v1/profile [get]
-func (h *Handler) GetByProfileId(c echo.Context) error {
-	// ctx := c.Request().Context()
-	// profileID, ok := ctx.Value("").(string)
-	// if !ok {
-	// 	return c.JSON(http.StatusBadRequest, resp.BuildErrorResp(resp.ErrDataInvalid, "", resp.LangEN))
-	// }
-	// if profileID == "" {
-	// 	return c.JSON(http.StatusBadRequest, resp.BuildErrorResp(resp.ErrDataInvalid, "", resp.LangEN))
-	// }
-
-	// clientID := c.QueryParam(constant.ClientId)
-	// if clientID == "" {
-	// 	return c.JSON(http.StatusBadRequest, resp.BuildErrorResp(resp.ErrDataInvalid, "", resp.LangEN))
-	// }
+func (h *Handler) GetByProfileId(c echo.Context, req *models.GetByProfileIdRequest) (*resp.Resp, error) {
+	ctx := c.Request().Context()
+	profileID, ok := ctx.Value("").(string)
+	if !ok {
+		return nil, c.JSON(http.StatusBadRequest, resp.BuildErrorResp(resp.ErrDataInvalid, "", resp.LangEN))
+	}
+	if profileID == "" {
+		return nil, c.JSON(http.StatusBadRequest, resp.BuildErrorResp(resp.ErrDataInvalid, "", resp.LangEN))
+	}
 
 	// tiers, err := h.tierService.GetTiersByProfileId(ctx, profileID, clientID)
 	// if err != nil {
@@ -46,5 +45,5 @@ func (h *Handler) GetByProfileId(c echo.Context) error {
 	// }
 
 	// return c.JSON(http.StatusOK, resp.BuildSuccessResp(resp.LangEN, tiers))
-	return c.JSON(200, "GetByProfileId handler not implemented yet")
+	return resp.BuildSuccessResp(resp.LangEN, "GetByProfileId handler not implemented yet"), nil
 }

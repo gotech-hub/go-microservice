@@ -14,6 +14,7 @@ import (
 	"go-source/api/ws"
 	"go-source/bootstrap"
 	"go-source/config"
+	"go-source/pkg/binding"
 	"go-source/pkg/constant"
 	"go-source/pkg/database/redis"
 	logger "go-source/pkg/log"
@@ -35,6 +36,7 @@ func main() {
 	// Set health check status to true for service discovery
 	http.SetHealthCheck(true)
 	e := echo.New()
+	e.HTTPErrorHandler = binding.ErrorHandler(e.DefaultHTTPErrorHandler)
 
 	// Setup context with graceful shutdown signals
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Kill, os.Interrupt, syscall.SIGTERM)

@@ -28,10 +28,13 @@ type ServInterface interface {
 }
 
 type Server struct {
+	Handlers *bootstrap.Handlers
 }
 
 func NewHttpServe(handlers *bootstrap.Handlers) *Server {
-	return &Server{}
+	return &Server{
+		Handlers: handlers,
+	}
 }
 
 func (app *Server) Start(e *echo.Echo) {
