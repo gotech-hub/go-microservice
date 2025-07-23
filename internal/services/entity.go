@@ -6,8 +6,6 @@ import (
 	"go-source/pkg/adapters"
 	entity "go-source/repositories/entity1"
 	"sync"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type EntityService struct {
@@ -34,11 +32,7 @@ func NewEntityService(entityRepository entity.IEntityRepository) IEntityService 
 
 func (s *EntityService) Get(ctx context.Context, Id string) (*domains.Entity, error) {
 	// Convert Id to primitive.ObjectID
-	objectId, err := primitive.ObjectIDFromHex(Id)
-	if err != nil {
-		return nil, err
-	}
-	rs, err := s.entityRepository.Get(ctx, objectId)
+	rs, err := s.entityRepository.Get(ctx, Id)
 	if err != nil {
 		return nil, err
 	}

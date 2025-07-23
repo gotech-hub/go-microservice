@@ -52,6 +52,20 @@ func NewFilterPlayer(opts ...FilterPlayerOption) *FilterPlayer {
 	return filterPlayer
 }
 
+func (f *FilterPlayer) ApplySorts(sorts ...bson.M) *FilterPlayer {
+	for _, sort := range sorts {
+		f.AppendSortOne(sort)
+	}
+	return f
+}
+
+func (f *FilterPlayer) ApplyFilters(filters ...bson.M) *FilterPlayer {
+	for _, filter := range filters {
+		f.Append(filter)
+	}
+	return f
+}
+
 // Append Not support bson.A
 func (f *FilterPlayer) Append(data interface{}) *FilterPlayer {
 	// check type data

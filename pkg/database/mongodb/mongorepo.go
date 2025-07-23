@@ -30,13 +30,12 @@ type ModelInterface interface {
 type Repository[T ModelInterface] struct {
 	*mongo.Collection
 	*FilterPlayer
-	mappingCollections map[string]*mongo.Collection
-	err                error
-	keyEncrypt         string
-	fieldsNameEnc      map[string]bool
+	err           error
+	keyEncrypt    string
+	fieldsNameEnc map[string]bool
 }
 
-func NewRepository[T ModelInterface](dbStorage *DatabaseStorage, opts ...*options.CollectionOptions) *Repository[T] {
+func NewRepository[T ModelInterface](dbStorage *DatabaseStorage, opts []*options.CollectionOptions, optsFilter ...FilterPlayerOption) *Repository[T] {
 	log := logger.GetLogger()
 
 	keyEncrypt := os.Getenv(utils.EncryptKey)
@@ -46,6 +45,13 @@ func NewRepository[T ModelInterface](dbStorage *DatabaseStorage, opts ...*option
 	collectionName := t.CollectionName()
 	indexModels := t.IndexModels()
 
+	var filterPlayer *FilterPlayer
+	if len(optsFilter) > 0 {
+		// Tự động thêm metric component nếu chưa có
+		optsFilter = append(optsFilter, WithMetricComponent(collectionName))
+		filterPlayer = NewFilterPlayer(optsFilter...)
+	}
+
 	if dbStorage.db != nil {
 		collection, err := newRepository(dbStorage.db, collectionName, indexModels, opts...)
 		if err != nil {
@@ -54,54 +60,16 @@ func NewRepository[T ModelInterface](dbStorage *DatabaseStorage, opts ...*option
 
 		return &Repository[T]{
 			Collection:    collection,
+			FilterPlayer:  filterPlayer,
 			keyEncrypt:    keyEncrypt,
 			fieldsNameEnc: fieldsNameEnc,
 		}
 	}
 
-	connNames := GetMappingRepositoryRegion(t.CollectionName())
-
-	if len(connNames) == 0 {
-		log.Fatal().Msgf("mongo multi conn: connNames not found for collectionName=%s", collectionName)
-	}
-
-	mappingDatabases := make(map[string]*mongo.Database)
-	mappingNames := make(map[string]string)
-
-	for _, connName := range connNames {
-		splitConnName := strings.Split(connName, "::")
-		if len(splitConnName) != 2 {
-			log.Fatal().Msgf("mongo multi conn: connName=%s invalid", connName)
-		}
-
-		db, ok := dbStorage.mappingDB[connName]
-		if !ok {
-			log.Fatal().Msgf("mongo multi conn: connName=%s not found in mappingDB", connName)
-		}
-
-		region := splitConnName[0]
-		name := splitConnName[1]
-
-		mappingDatabases[region] = db
-		mappingNames[region] = name
-	}
-
-	mappingCollections := make(map[string]*mongo.Collection)
-
-	for region, db := range mappingDatabases {
-		collection, err := newRepository(db, collectionName, indexModels, opts...)
-		if err != nil {
-			connName := fmt.Sprintf("%s::%s", region, mappingNames[region])
-			log.Fatal().Msgf("mongo multi conn - connName=%s: new repository error: %v", connName, err)
-		}
-
-		mappingCollections[region] = collection
-	}
-
 	return &Repository[T]{
-		mappingCollections: mappingCollections,
-		keyEncrypt:         keyEncrypt,
-		fieldsNameEnc:      fieldsNameEnc,
+		FilterPlayer:  filterPlayer,
+		keyEncrypt:    keyEncrypt,
+		fieldsNameEnc: fieldsNameEnc,
 	}
 }
 
@@ -119,48 +87,6 @@ func newRepository(db *mongo.Database, collectionName string, indexModels []mong
 	}
 
 	return collection, nil
-}
-
-func (r *Repository[T]) NewFilterPlayer(opts ...FilterPlayerOption) *Repository[T] {
-	opts = append(opts, WithMetricComponent(r.Collection.Name()))
-	filterPlayer := NewFilterPlayer(opts...)
-
-	return &Repository[T]{
-		Collection:    r.Collection,
-		FilterPlayer:  filterPlayer,
-		err:           r.err,
-		keyEncrypt:    r.keyEncrypt,
-		fieldsNameEnc: r.fieldsNameEnc,
-	}
-}
-
-func (r *Repository[T]) NewFilterPlayerMultiConn(ctx context.Context) *Repository[T] {
-	if r.mappingCollections == nil {
-		return nil
-	}
-
-	country, ok := ctx.Value(utils.KeyRegion).(string)
-	if !ok {
-		return &Repository[T]{
-			err: ErrContextNotFoundKeyRegion,
-		}
-	}
-	region := GetRegionCountry(country)
-
-	collection, ok := r.mappingCollections[region]
-	if !ok {
-		return &Repository[T]{
-			err: ErrNotFoundRegion,
-		}
-	}
-
-	return &Repository[T]{
-		Collection:    collection,
-		FilterPlayer:  NewFilterPlayer(),
-		err:           r.err,
-		keyEncrypt:    r.keyEncrypt,
-		fieldsNameEnc: r.fieldsNameEnc,
-	}
 }
 
 func (r *Repository[T]) getIndexesName() [][]string {
@@ -734,7 +660,31 @@ func (r *Repository[T]) upsertDoc(ctx context.Context, update interface{}, opts 
 	}
 
 	updateEnc, err := encryptBsonUpdate(update, r.fieldsNameEnc, r.keyEncrypt)
+	err = r.Collection.FindOne(ctx, r.filter).Err()
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			// Document không tồn tại, thực hiện insert
+			var dataInsert = update
+			if r.keyEncrypt != "" && len(r.fieldsNameEnc) > 0 {
+				dataInsert, err = encryptBsonUpdate(dataInsert, r.fieldsNameEnc, r.keyEncrypt)
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			var startR *time.Time
+			if shouldMeasureLatency {
+				now := time.Now()
+				startR = &now
+			}
+
+			_, err := r.Collection.InsertOne(ctx, dataInsert)
+			if startR != nil {
+				logger.GetLogger().AddTraceInfoContextRequest(ctx).Info().Dur("latency", time.Since(*startR)).Msg("mongodb_latency: UpsertDoc.InsertOne")
+			}
+
+			return nil, err
+		}
 		return nil, err
 	}
 
